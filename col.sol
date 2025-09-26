@@ -13,7 +13,7 @@ contract Karam{
 //   }
 
     uint deploymentTimestamp;
-    uint constant TWENTY_FOUR_HOURS = 86400;
+    uint constant TWENTY_FOUR_HOURS = 86400 ;
 
     mapping (address => uint256) karma;
     mapping (address => uint256) karmaGivenInDay;
@@ -21,35 +21,48 @@ contract Karam{
     mapping (address => mapping(address =>uint)) karmaGivenOneToOtherInDay;
     mapping (address => mapping(address =>uint)) karmaSlashedOneToOtherInDay;
 
-    
 
 
+    modifier givingLimitChecker(address _receiver, uint8 amount) {
+        if (karmaGivenInDay[msg.sender]>=30 ether){
+            revert LimitExceeded();
+        }
+        _;
+    }
 
 
-
-
-
-
-    modifier givingLimitCheckGiver(address _receiver, uint8 amount) {
-        if (karmaGivenInDay[msg.sender]>=30){
+    modifier slashingLimitChecker(address _receiver, uint8 amount) {
+        if (karmaSlashedInDay[msg.sender]>=20 ether){
             revert LimitExceeded();
         }
 
-        _;
+        if (karmaSlashedOneToOtherInDay[msg.sender][_receiver]>=5 ether){
+            revert LimitExceeded();
 
+        }
+        _;
     }
 
     function register() public {
-        karma[msg.sender] = 500;
-        
+        karma[msg.sender] = 500 ether;
     }
 
 
-    function giveKarma(address _receiver, uint _amount) public  {
+    function giveKarma(address _receiver, uint8 _amount)  public givingLimitChecker(_receiver, _amount)  {
+        //assuming the above parameter (amount) is in ether
         karma[_receiver] +=_amount;
-
-
+        karma[msg.sender] -=_amount;
     }
+
+    function slashKarma(address _receiver, uint8 _amount) public slashingLimitChecker(_receiver, _amount) {
+        karma[_receiver] -=_amount;
+        karma[msg.sender] -=_amount/5;
+    }
+
+
+
+
+    
 
 
 }
