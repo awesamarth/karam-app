@@ -49,7 +49,10 @@ export const KarmaDashboard = () => {
       {/* Header Section */}
       <div className="flex items-center gap-3 mb-6">
         {/* User Profile Picture */}
-        <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center border-2 border-gray-400">
+        <div
+          className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center border-2 border-gray-400 cursor-pointer hover:bg-gray-400 transition-colors"
+          onClick={() => window.location.href = '/profile'}
+        >
           <span className="text-black text-sm font-bold">
             {session?.data?.user?.username?.charAt(0).toUpperCase() || 'A'}
           </span>

@@ -44,7 +44,7 @@ contract Karam {
     mapping (address=> bool) public isRegistered;
     mapping (address => Connections) public socialConnections;
     mapping(address => uint256) public karma;
-    mapping (address=> string) twitterUsername;
+    mapping (string=> address) twitterUsername;
     mapping(address => uint256) karmaGivenInDay;
     mapping(address => uint256) karmaSlashedInDay;
     mapping (address => uint256) totalKarmaSlashedOfUser;
@@ -121,7 +121,7 @@ contract Karam {
 
         if (_whichPlatform == 0) {
             socialConnections[msg.sender].twitterUsername = _username;
-            twitterUsername[msg.sender] = _username;
+            twitterUsername[_username] = msg.sender;
         } else if (_whichPlatform == 1) {
             socialConnections[msg.sender].githubUsername = _username;
         } else if (_whichPlatform == 2) {

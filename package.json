@@ -13,6 +13,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@pythnetwork/entropy-sdk-solidity": "^2.0.0",
     "@worldcoin/mini-apps-ui-kit-react": "^1.0.2",
     "@worldcoin/minikit-js": "latest",
     "@worldcoin/minikit-react": "latest",
