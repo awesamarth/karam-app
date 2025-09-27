@@ -1,7 +1,7 @@
 import { auth } from '@/auth';
 import { Page } from '@/components/PageLayout';
 import { Pay } from '@/components/Pay';
-import { Transaction } from '@/components/Transaction';
+// import { Transaction } from '@/components/Transaction';
 import { UserInfo } from '@/components/UserInfo';
 import { Verify } from '@/components/Verify';
 import { ViewPermissions } from '@/components/ViewPermissions';
@@ -29,7 +29,7 @@ export default async function Home() {
         <UserInfo />
         <Verify />
         <Pay />
-        <Transaction />
+        {/* <Transaction /> */}
         <ViewPermissions />
       </Page.Main>
     </>
