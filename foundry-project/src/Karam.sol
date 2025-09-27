@@ -5,6 +5,21 @@ contract Karam {
     error LimitExceeded();
     error NotOwner();
 
+    event KarmaGiven(
+      address indexed from,
+      address indexed to,
+      uint256 amount,
+      string reason,
+      uint256 timestamp
+  );
+
+  event KarmaSlashed(
+      address indexed slasher,
+      address indexed victim,
+      uint256 amount,
+      uint256 timestamp
+  );
+
     //     struct DailyData {
     //       uint256 karmaGivenInDay;
     //       uint256 karmaSlashedInDay;
@@ -15,6 +30,8 @@ contract Karam {
         string githubUsername;
         string discordUsername;
     }
+
+    
 
     uint256 lastUpdated;
     address owner;
@@ -71,7 +88,7 @@ contract Karam {
         karma[msg.sender] -= _amount;
     }
 
-    function slashKarma(address _receiver, uint8 _amount) public slashingLimitChecker(_receiver, _amount) {
+    function slashKarma(address _receiver, uint8 _amount, string memory _reason) public slashingLimitChecker(_receiver, _amount) {
         karma[_receiver] -= _amount;
         karma[msg.sender] -= _amount / 5;
     }
@@ -98,7 +115,6 @@ contract Karam {
             karmaGivenInDay[user] = 0;
             karmaSlashedInDay[user] = 0;
 
-            // Reset nested mappings - need to loop through all other users
             for (uint j = 0; j < allUsers.length; j++) {
                 address otherUser = allUsers[j];
                 karmaGivenOneToOtherInDay[user][otherUser] = 0;

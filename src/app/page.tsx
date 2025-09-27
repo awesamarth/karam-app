@@ -1,11 +1,11 @@
 import { Page } from '@/components/PageLayout';
-import { Transaction } from '../components/Transaction';
+import { KarmaDashboard } from '../components/KarmaDashboard';
 
 export default function Home() {
   return (
     <Page>
-      <Page.Main className="flex flex-col items-center justify-center">
-        <Transaction />
+      <Page.Main className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+        <KarmaDashboard />
       </Page.Main>
     </Page>
   );
