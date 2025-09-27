@@ -170,6 +170,18 @@ export const KarmaDashboard = () => {
           View All Activity →
         </Button>
       </div>
+
+      {/* Test Button */}
+      <div className="mt-4">
+        <Button
+          variant="secondary"
+          size="sm"
+          className="w-full"
+          onClick={() => window.location.href = '/test'}
+        >
+          Test Contract →
+        </Button>
+      </div>
     </div>
   );
 };

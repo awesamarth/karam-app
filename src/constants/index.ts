@@ -1,5 +1,9 @@
-export const CONTRACT_ADDRESS="0x3bB3A124099fddBD20DFEd345D7835fE68c57E87"
-export const CONTRACT_ABI=[
+export const WORLDSEPOLIA_KARAM_CONTRACT_ADDRESS="0x3bB3A124099fddBD20DFEd345D7835fE68c57E87"
+export const OPSEPOlIA_REDISTRIBUTION_CONTRACT_ADDRESS="0x96298722D056F03b245Df2f5860319DEe3eE7cFE"
+export const WORLDMAINNET_COUNTER_ADDRESS="0xAf9FCeA359634E3631bff14300a13D7715b19d42"
+
+
+export const KARAM_CONTRACT_ABI=[
         {
             "type": "constructor",
             "inputs": [],
@@ -269,5 +273,110 @@ export const CONTRACT_ABI=[
             "type": "error",
             "name": "NotOwner",
             "inputs": []
+        }
+    ]
+export const REDISTRIBUTION_CONTRACT_ABI = [
+        {
+            "type": "constructor",
+            "inputs": [
+                {
+                    "name": "_entropy",
+                    "type": "address",
+                    "internalType": "address"
+                }
+            ],
+            "stateMutability": "nonpayable"
+        },
+        {
+            "type": "fallback",
+            "stateMutability": "payable"
+        },
+        {
+            "type": "receive",
+            "stateMutability": "payable"
+        },
+        {
+            "type": "function",
+            "name": "_entropyCallback",
+            "inputs": [
+                {
+                    "name": "sequence",
+                    "type": "uint64",
+                    "internalType": "uint64"
+                },
+                {
+                    "name": "provider",
+                    "type": "address",
+                    "internalType": "address"
+                },
+                {
+                    "name": "randomNumber",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                }
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable"
+        },
+        {
+            "type": "function",
+            "name": "request",
+            "inputs": [],
+            "outputs": [],
+            "stateMutability": "payable"
+        },
+        {
+            "type": "event",
+            "name": "EntropyRequested",
+            "inputs": [
+                {
+                    "name": "sequenceNumber",
+                    "type": "uint64",
+                    "indexed": false,
+                    "internalType": "uint64"
+                }
+            ],
+            "anonymous": false
+        },
+        {
+            "type": "event",
+            "name": "EntropyResult",
+            "inputs": [
+                {
+                    "name": "sequenceNumber",
+                    "type": "uint64",
+                    "indexed": false,
+                    "internalType": "uint64"
+                },
+                {
+                    "name": "result",
+                    "type": "uint256",
+                    "indexed": false,
+                    "internalType": "uint256"
+                }
+            ],
+            "anonymous": false
+        }
+    ]
+export const COUNTER_ABI= [
+        {
+            "type": "function",
+            "name": "count",
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "increment",
+            "inputs": [],
+            "outputs": [],
+            "stateMutability": "nonpayable"
         }
     ]

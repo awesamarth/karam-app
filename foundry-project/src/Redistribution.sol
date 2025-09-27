@@ -9,7 +9,7 @@ contract Redistribution is IEntropyConsumer {
     event EntropyRequested(uint64 sequenceNumber);
     event EntropyResult(uint64 sequenceNumber, uint result);
 
-
+    uint day=25;
     address owner;
 
 
@@ -40,6 +40,7 @@ contract Redistribution is IEntropyConsumer {
 
         // pay the fees and request a random number from entropy
         uint64 sequenceNumber = entropy.requestV2{value: requestFee}();
+        day+=1;
 
         // emit event
         emit EntropyRequested(sequenceNumber);
@@ -50,9 +51,12 @@ contract Redistribution is IEntropyConsumer {
         address,
         bytes32 randomNumber
     ) internal override {
-        uint result = uint256(randomNumber) % 3;
-        
+        uint result = uint256(randomNumber) % (51-day);
 
+        if (result==0){
+            day=25;
+        }
+        
         emit EntropyResult(sequenceNumber, result);
     }
 
