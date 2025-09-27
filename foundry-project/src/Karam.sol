@@ -122,4 +122,18 @@ contract Karam {
             }
         }
     }
+
+    function redistibuteKarma() public onlyOwner() {
+        for (uint i = 0; i < allUsers.length; i++) {
+            address user = allUsers[i];
+            if (karma[user] < 100) {
+                karma[user] +=30;
+            }
+            else {
+                // gonna give them 
+                karma[user] = (3 * karma[user])/10; 
+            } 
+            
+        }
+    }
 }
