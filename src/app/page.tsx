@@ -1,11 +1,11 @@
 import { Page } from '@/components/PageLayout';
-import { AuthButton } from '../components/AuthButton';
+import { Transaction } from '../components/Transaction';
 
 export default function Home() {
   return (
     <Page>
       <Page.Main className="flex flex-col items-center justify-center">
-        <AuthButton />
+        <Transaction />
       </Page.Main>
     </Page>
   );
