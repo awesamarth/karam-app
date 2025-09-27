@@ -88,6 +88,7 @@ contract Karam {
         }
         karma[msg.sender] = 500 ether;
         allUsers.push(msg.sender);
+        isRegistered[msg.sender] = true;
     }
 
     function giveKarma(address _receiver, uint _amount, string memory _reason) public givingLimitChecker(_receiver, _amount) {
@@ -112,6 +113,7 @@ contract Karam {
         karma[msg.sender] -= _amount / 5;
         karmaSlashedInDay[msg.sender] += _amount;
         totalKarmaSlashedOfUser[_receiver] +=_amount;
+        karmaSlashedOneToOtherInDay[msg.sender][_receiver] += _amount;
 
         emit KarmaSlashed(msg.sender, _receiver, _amount, _reason, block.timestamp);
     }

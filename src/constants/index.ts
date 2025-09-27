@@ -1,6 +1,8 @@
-export const WORLDSEPOLIA_KARAM_CONTRACT_ADDRESS="0x3bB3A124099fddBD20DFEd345D7835fE68c57E87"
+export const WORLDSEPOLIA_KARAM_CONTRACT_ADDRESS="0x1EfE1DBCab7a3ca5Daf1b8C2fd34d27B842DE6c3"
 export const OPSEPOlIA_REDISTRIBUTION_CONTRACT_ADDRESS="0x96298722D056F03b245Df2f5860319DEe3eE7cFE"
 export const WORLDMAINNET_COUNTER_ADDRESS="0xAf9FCeA359634E3631bff14300a13D7715b19d42"
+
+export const LOCAL_KARAM_CONTRACT_ADDRESS="0x5FbDB2315678afecb367f032d93F642f64180aa3"
 
 
 export const KARAM_CONTRACT_ABI=[
@@ -116,6 +118,92 @@ export const KARAM_CONTRACT_ABI=[
         },
         {
             "type": "function",
+            "name": "karmaGivenInDay",
+            "inputs": [
+                {
+                    "name": "",
+                    "type": "address",
+                    "internalType": "address"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "karmaGivenOneToOtherInDay",
+            "inputs": [
+                {
+                    "name": "",
+                    "type": "address",
+                    "internalType": "address"
+                },
+                {
+                    "name": "",
+                    "type": "address",
+                    "internalType": "address"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "karmaSlashedInDay",
+            "inputs": [
+                {
+                    "name": "",
+                    "type": "address",
+                    "internalType": "address"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "karmaSlashedOneToOtherInDay",
+            "inputs": [
+                {
+                    "name": "",
+                    "type": "address",
+                    "internalType": "address"
+                },
+                {
+                    "name": "",
+                    "type": "address",
+                    "internalType": "address"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
             "name": "redistibuteKarma",
             "inputs": [],
             "outputs": [],
@@ -176,6 +264,44 @@ export const KARAM_CONTRACT_ABI=[
                     "name": "discordUsername",
                     "type": "string",
                     "internalType": "string"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "totalKarmaReceivedByUser",
+            "inputs": [
+                {
+                    "name": "",
+                    "type": "address",
+                    "internalType": "address"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "totalKarmaSlashedOfUser",
+            "inputs": [
+                {
+                    "name": "",
+                    "type": "address",
+                    "internalType": "address"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint256",
+                    "internalType": "uint256"
                 }
             ],
             "stateMutability": "view"
