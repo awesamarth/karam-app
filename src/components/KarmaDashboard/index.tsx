@@ -44,6 +44,29 @@ export const KarmaDashboard = () => {
     );
   }
 
+  // if (!isInstalled) {
+  //   return (
+  //     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+  //       <div className="px-3 py-4 max-w-sm mx-auto">
+  //         <div className="bg-gray-50 rounded-2xl p-8 border-2 border-gray-300 text-center min-h-[400px] flex flex-col justify-center items-center">
+  //           <div className="text-6xl mb-6">📱</div>
+  //           <h1 className="text-2xl font-bold text-black mb-4">
+  //             World App Required
+  //           </h1>
+  //           <p className="text-gray-600 text-center mb-6 leading-relaxed">
+  //             This mini-app can only be accessed through the World App. Please open this link in World App to continue.
+  //           </p>
+  //           <div className="rounded-xl p-4 w-full">
+  //             <p className="text-sm text-gray-700 text-center">
+  //               Download the World App from your app store and try again
+  //             </p>
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
+
   return (
     <div className="px-3 py-4 max-w-sm mx-auto">
       {/* Header Section */}

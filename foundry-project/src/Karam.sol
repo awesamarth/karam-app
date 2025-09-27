@@ -37,20 +37,20 @@ contract Karam {
     
 
     uint256 lastUpdated;
-    address owner;
-
+    address owner
+;
     address[] public allUsers;
 
     mapping (address=> bool) public isRegistered;
     mapping (address => Connections) public socialConnections;
     mapping(address => uint256) public karma;
     mapping (string=> address) twitterUsername;
-    mapping(address => uint256) karmaGivenInDay;
-    mapping(address => uint256) karmaSlashedInDay;
-    mapping (address => uint256) totalKarmaSlashedOfUser;
-    mapping (address => uint256) totalKarmaReceivedByUser;
-    mapping(address => mapping(address => uint256)) karmaGivenOneToOtherInDay;
-    mapping(address => mapping(address => uint256)) karmaSlashedOneToOtherInDay;
+    mapping(address => uint256) public karmaGivenInDay;
+    mapping(address => uint256) public karmaSlashedInDay;
+    mapping (address => uint256) public totalKarmaSlashedOfUser; //ye karni baaki hai abhi
+    mapping (address => uint256) public totalKarmaReceivedByUser;
+    mapping(address => mapping(address => uint256)) public  karmaGivenOneToOtherInDay;
+    mapping(address => mapping(address => uint256)) public karmaSlashedOneToOtherInDay;
 
     modifier givingLimitChecker(address _receiver, uint amount) {
         if (karmaGivenInDay[msg.sender] >= 30 ether) {
@@ -98,6 +98,7 @@ contract Karam {
         karma[_receiver] += _amount;
         karma[msg.sender] -= _amount;
         karmaGivenInDay[msg.sender] += _amount;
+        totalKarmaReceivedByUser[_receiver] +=_amount;
 
 
         emit KarmaGiven(msg.sender, _receiver, _amount, _reason, block.timestamp);
@@ -110,6 +111,7 @@ contract Karam {
         karma[_receiver] -= _amount;
         karma[msg.sender] -= _amount / 5;
         karmaSlashedInDay[msg.sender] += _amount;
+        totalKarmaSlashedOfUser[_receiver] +=_amount;
 
         emit KarmaSlashed(msg.sender, _receiver, _amount, _reason, block.timestamp);
     }

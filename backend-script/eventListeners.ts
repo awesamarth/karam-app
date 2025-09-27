@@ -1,0 +1,156 @@
+import {
+  worldchainPublicClient,
+  optimismPublicClient,
+  KARAM_CONTRACT_ADDRESS,
+  REDISTRIBUTION_CONTRACT_ADDRESS,
+  KARAM_ABI,
+  REDISTRIBUTION_ABI
+} from './config';
+import { formatEther } from 'viem';
+import { storeKarmaTransaction } from './database';
+import { notifyKarmaReceived, notifyKarmaSlashed } from './notifications';
+
+// Event listeners
+export function setupKarmaEventListeners() {
+  console.log('🎯 Setting up Karma event listeners on Worldchain Sepolia...');
+
+  // Listen for KarmaGiven events
+  worldchainPublicClient.watchContractEvent({
+    address: KARAM_CONTRACT_ADDRESS,
+    abi: KARAM_ABI,
+    eventName: 'KarmaGiven',
+    onLogs: async (logs) => {
+      for (const log of logs) {
+        try {
+          const { from, to, amount, reason, timestamp } = log.args as any;
+
+          console.log('📈 KarmaGiven event:', {
+            from,
+            to,
+            amount: formatEther(amount),
+            reason,
+            txHash: log.transactionHash
+          });
+
+          await storeKarmaTransaction(
+            'given',
+            from,
+            to,
+            amount.toString(),
+            reason,
+            new Date(Number(timestamp) * 1000),
+            log.transactionHash,
+            log.blockNumber
+          );
+
+          // Send notification to user
+          await notifyKarmaReceived(
+            to,
+            formatEther(amount),
+            from,
+            reason
+          );
+
+        } catch (error) {
+          console.error('❌ Error processing KarmaGiven event:', error);
+        }
+      }
+    }
+  });
+
+  // Listen for KarmaSlashed events
+  worldchainPublicClient.watchContractEvent({
+    address: KARAM_CONTRACT_ADDRESS,
+    abi: KARAM_ABI,
+    eventName: 'KarmaSlashed',
+    onLogs: async (logs) => {
+      for (const log of logs) {
+        try {
+          const { slasher, victim, amount, reason, timestamp } = log.args as any;
+
+          console.log('📉 KarmaSlashed event:', {
+            slasher,
+            victim,
+            amount: formatEther(amount),
+            reason,
+            txHash: log.transactionHash
+          });
+
+          await storeKarmaTransaction(
+            'slashed',
+            slasher,
+            victim,
+            amount.toString(),
+            reason,
+            new Date(Number(timestamp) * 1000),
+            log.transactionHash,
+            log.blockNumber
+          );
+
+          // Send notification to user
+          await notifyKarmaSlashed(
+            victim,
+            formatEther(amount),
+            slasher,
+            reason
+          );
+
+        } catch (error) {
+          console.error('❌ Error processing KarmaSlashed event:', error);
+        }
+      }
+    }
+  });
+
+  console.log('✅ Karma event listeners active');
+}
+
+export function setupRedistributionEventListeners() {
+  console.log('🎲 Setting up Redistribution event listeners on Optimism Sepolia...');
+
+  // Listen for EntropyResult events
+  optimismPublicClient.watchContractEvent({
+    address: REDISTRIBUTION_CONTRACT_ADDRESS,
+    abi: REDISTRIBUTION_ABI,
+    eventName: 'EntropyResult',
+    onLogs: async (logs) => {
+      for (const log of logs) {
+        try {
+          const { sequenceNumber, result } = log.args as any;
+
+          console.log('🎲 EntropyResult event:', {
+            sequenceNumber,
+            result: result.toString(),
+            txHash: log.transactionHash
+          });
+
+          // Check if redistribution should happen (result === 0)
+          if (result === 0n) {
+            console.log('🎉 REDISTRIBUTION TRIGGERED! Result is 0');
+
+            // Import and call the redistribution function
+            const { triggerRedistribution } = await import('./index');
+            await triggerRedistribution();
+
+          } else {
+            console.log(`⏭️  No redistribution. Result: ${result.toString()}`);
+          }
+
+        } catch (error) {
+          console.error('❌ Error processing EntropyResult event:', error);
+        }
+      }
+    }
+  });
+
+  console.log('✅ Redistribution event listeners active');
+}
+
+export async function startEventListeners() {
+  console.log('🚀 Starting all event listeners...');
+
+  setupKarmaEventListeners();
+  setupRedistributionEventListeners();
+
+  console.log('🎯 All event listeners started successfully');
+}

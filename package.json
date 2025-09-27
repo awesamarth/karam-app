@@ -13,6 +13,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ensdomains/ensjs": "^4.0.2",
+    "@prisma/client": "^6.16.2",
     "@pythnetwork/entropy-sdk-solidity": "^2.0.0",
     "@worldcoin/mini-apps-ui-kit-react": "^1.0.2",
     "@worldcoin/minikit-js": "latest",
@@ -35,6 +37,7 @@
     "eruda": "^3.4.1",
     "eslint": "^9",
     "eslint-config-next": "15.2.3",
+    "prisma": "^6.16.2",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

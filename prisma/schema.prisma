@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  address     String @id
+  username    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  transactionsFrom KarmaTransaction[] @relation("FromUser")
+  transactionsTo   KarmaTransaction[] @relation("ToUser")
+}
+
+model KarmaTransaction {
+  id          String   @id @default(cuid())
+  type        String   // "given" or "slashed"
+  fromAddress String
+  toAddress   String
+  amount      String   // Store as string to handle big numbers
+  reason      String
+  timestamp   DateTime
+  txHash      String?
+  blockNumber BigInt?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  fromUser User @relation("FromUser", fields: [fromAddress], references: [address])
+  toUser   User @relation("ToUser", fields: [toAddress], references: [address])
+
+  @@index([fromAddress])
+  @@index([toAddress])
+  @@index([timestamp])
+}
+
+model Leaderboard {
+  id        String   @id @default(cuid())
+  rank      Int
+  address   String
+  karma     BigInt   // Use BigInt for large numbers
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@unique([rank])
+  @@index([rank])
+  @@index([updatedAt])
+}

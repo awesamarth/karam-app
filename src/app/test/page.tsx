@@ -9,8 +9,9 @@ import { useSession } from 'next-auth/react';
 import { walletAuth } from '@/auth/wallet';
 import { useMiniKit } from '@worldcoin/minikit-js/minikit-provider';
 import { createPublicClient, http } from 'viem';
-import { worldchain } from 'viem/chains';
+import { sepolia, worldchain, worldchainSepolia } from 'viem/chains';
 import { useRouter } from 'next/navigation';
+import { createEnsPublicClient } from '@ensdomains/ensjs';
 
 export default function TestPage() {
   const session = useSession();
@@ -29,6 +30,26 @@ export default function TestPage() {
     chain: worldchain,
     transport: http(),
   });
+
+  const ensClient = createEnsPublicClient({
+    chain: sepolia,
+    transport: http()
+  })
+
+  const searchENSDomains = async (searchTerm: any) => {
+    try {
+      // Try direct resolution first
+      const address = await ensClient.getAddressRecord({
+        name: `${searchTerm}.eth`
+      });
+
+      console.log('ENS resolved:', address);
+      return address;
+    } catch (error) {
+      console.log('ENS not found or error:', error);
+      return null;
+    }
+  };
 
   const {
     isLoading: isConfirming,
@@ -188,6 +209,13 @@ export default function TestPage() {
             </Button>
           </LiveFeedback>
         </div>
+
+        <Button
+          onClick={() => searchENSDomains('b.awesamarthsepolia')}
+          variant="tertiary"
+        >
+          Test ENS
+        </Button>
 
         {/* User Info */}
         {session.status === 'authenticated' && (
