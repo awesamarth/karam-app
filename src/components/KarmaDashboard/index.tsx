@@ -5,13 +5,104 @@ import { useEffect, useState } from 'react';
 import { walletAuth } from '@/auth/wallet';
 import { useMiniKit } from '@worldcoin/minikit-js/minikit-provider';
 import { Button } from '@worldcoin/mini-apps-ui-kit-react';
+import { KARAM_CONTRACT_ABI, WORLDMAINNET_KARAM_CONTRACT_ADDRESS } from '@/constants';
+import { createPublicClient, http, formatEther } from 'viem';
+import { worldchain } from 'viem/chains';
+import { useRouter } from 'next/navigation';
 
 export const KarmaDashboard = () => {
   const session = useSession();
   const { isInstalled } = useMiniKit();
+  const router = useRouter();
   const [karmaBalance, setKarmaBalance] = useState<number>(0);
   const [dailyGiven, setDailyGiven] = useState<number>(0);
   const [dailyLimit] = useState<number>(30);
+  const [isRegistered, setIsRegistered] = useState<boolean>(false);
+  const [socialConnections, setSocialConnections] = useState({
+    twitter: '',
+    github: '',
+    discord: ''
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  const worldchainPublicClient = createPublicClient({
+    chain: worldchain,
+    transport: http(),
+  });
+
+  const fetchUserData = async (userAddress: string) => {
+    try {
+      setIsLoading(true);
+
+      const [
+        registrationStatus,
+        karmaAmount,
+        dailyKarmaGiven,
+        connections
+      ] = await worldchainPublicClient.multicall({
+        contracts: [
+          {
+            address: WORLDMAINNET_KARAM_CONTRACT_ADDRESS as `0x${string}`,
+            abi: KARAM_CONTRACT_ABI,
+            functionName: 'isRegistered',
+            args: [userAddress as `0x${string}`]
+          },
+          {
+            address: WORLDMAINNET_KARAM_CONTRACT_ADDRESS as `0x${string}`,
+            abi: KARAM_CONTRACT_ABI,
+            functionName: 'karma',
+            args: [userAddress as `0x${string}`]
+          },
+          {
+            address: WORLDMAINNET_KARAM_CONTRACT_ADDRESS as `0x${string}`,
+            abi: KARAM_CONTRACT_ABI,
+            functionName: 'karmaGivenInDay',
+            args: [userAddress as `0x${string}`]
+          },
+          {
+            address: WORLDMAINNET_KARAM_CONTRACT_ADDRESS as `0x${string}`,
+            abi: KARAM_CONTRACT_ABI,
+            functionName: 'socialConnections',
+            args: [userAddress as `0x${string}`]
+          }
+        ]
+      });
+
+      if (registrationStatus.status === 'success') {
+        const registered = registrationStatus.result as boolean;
+        setIsRegistered(registered);
+
+        // Redirect to registration if user is not registered
+        if (!registered) {
+          router.push('/register');
+          return;
+        }
+      }
+
+      if (karmaAmount.status === 'success') {
+        setKarmaBalance(Number(formatEther(karmaAmount.result as bigint)));
+      }
+
+      if (dailyKarmaGiven.status === 'success') {
+        setDailyGiven(Number(formatEther(dailyKarmaGiven.result as bigint)));
+      }
+
+      if (connections.status === 'success') {
+        const [twitter, github, discord] = connections.result as [string, string, string];
+        setSocialConnections({
+          twitter: twitter || '',
+          github: github || '',
+          discord: discord || ''
+        });
+      }
+
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
 
   // Auto-login useEffect
   useEffect(() => {
@@ -28,15 +119,16 @@ export const KarmaDashboard = () => {
     autoLogin();
   }, [isInstalled, session.status]);
 
-  // Mock data for now - will replace with actual contract calls
+  // Fetch user data when authenticated
   useEffect(() => {
-    if (session.status === 'authenticated') {
-      setKarmaBalance(500);
-      setDailyGiven(5);
+    if (session.status === 'authenticated' && session.data?.user?.walletAddress) {
+      fetchUserData(session.data.user.walletAddress);
+    } else if (session.status === 'unauthenticated') {
+      setIsLoading(false);
     }
-  }, [session.status]);
+  }, [session.status, session.data?.user?.walletAddress]);
 
-  if (session.status === 'loading') {
+  if (session.status === 'loading' || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin w-8 h-8 border-2 border-black border-t-transparent rounded-full"></div>
@@ -124,12 +216,12 @@ export const KarmaDashboard = () => {
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-gray-700">Karma Given</span>
-            <span className="font-medium text-black">{dailyGiven}/{dailyLimit}</span>
+            <span className="font-medium text-black">{dailyGiven}/30</span>
           </div>
           <div className="w-full bg-gray-300 rounded-full h-2">
             <div
               className="bg-black h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(dailyGiven / dailyLimit) * 100}%` }}
+              style={{ width: `${(dailyGiven / 30) * 100}%` }}
             ></div>
           </div>
         </div>
@@ -139,49 +231,31 @@ export const KarmaDashboard = () => {
       <div className="bg-black text-white rounded-xl p-4 mb-6">
         <h3 className="font-semibold mb-3 text-white">Connected Platforms</h3>
         <div className="flex gap-3">
-          <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-            <span className="text-black text-xs font-bold">T</span>
+          <div className={`w-8 h-8 ${socialConnections.twitter ? 'bg-white' : 'bg-gray-600'} rounded-full flex items-center justify-center`}>
+            <span className={`${socialConnections.twitter ? 'text-black' : 'text-white'} text-xs font-bold`}>T</span>
           </div>
-          <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
-            <span className="text-white text-xs font-bold">G</span>
+          <div className={`w-8 h-8 ${socialConnections.github ? 'bg-white' : 'bg-gray-600'} rounded-full flex items-center justify-center`}>
+            <span className={`${socialConnections.github ? 'text-black' : 'text-white'} text-xs font-bold`}>G</span>
           </div>
-          <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
-            <span className="text-white text-xs font-bold">D</span>
+          <div className={`w-8 h-8 ${socialConnections.discord ? 'bg-white' : 'bg-gray-600'} rounded-full flex items-center justify-center`}>
+            <span className={`${socialConnections.discord ? 'text-black' : 'text-white'} text-xs font-bold`}>D</span>
           </div>
         </div>
-        <p className="text-gray-300 text-xs mt-2">Connect more to earn bonus karma</p>
+        <p className="text-gray-300 text-xs mt-2">
+          {socialConnections.twitter || socialConnections.github || socialConnections.discord
+            ? `Connected: ${[socialConnections.twitter && 'Twitter', socialConnections.github && 'GitHub', socialConnections.discord && 'Discord'].filter(Boolean).join(', ')}`
+            : 'Connect platforms to earn bonus karma'
+          }
+        </p>
       </div>
 
       {/* Recent Activity Preview */}
       <div className="bg-gray-50 rounded-xl p-4 border-2 border-gray-300">
         <h3 className="font-semibold text-black mb-4">Recent Activity</h3>
         <div className="space-y-3">
-          {/* Mock recent activities */}
-          <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-black">alex gave you 10 karma</p>
-              <p className="text-xs text-gray-600">for helping with the project</p>
-            </div>
-            <span className="text-sm font-bold text-green-600">+10</span>
-          </div>
-
-          <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
-            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-black">sarah slashed your karma</p>
-              <p className="text-xs text-gray-600">for being late to meeting</p>
-            </div>
-            <span className="text-sm font-bold text-red-600">-5</span>
-          </div>
-
-          <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-black">john gave you 15 karma</p>
-              <p className="text-xs text-gray-600">for excellent code review</p>
-            </div>
-            <span className="text-sm font-bold text-green-600">+15</span>
+          <div className="text-center py-8">
+            <p className="text-sm text-gray-500">No recent activity yet</p>
+            <p className="text-xs text-gray-400 mt-1">Start giving or slashing karma to see activity here</p>
           </div>
         </div>
 

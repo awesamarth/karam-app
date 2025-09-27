@@ -1,11 +1,9 @@
 import {
   worldchainWalletClient,
   optimismWalletClient,
-  KARAM_CONTRACT_ADDRESS,
-  REDISTRIBUTION_CONTRACT_ADDRESS,
-  KARAM_ABI,
-  REDISTRIBUTION_ABI
+
 } from './config';
+import { KARAM_CONTRACT_ABI, OPSEPOlIA_REDISTRIBUTION_CONTRACT_ADDRESS, REDISTRIBUTION_CONTRACT_ABI, WORLDMAINNET_KARAM_CONTRACT_ADDRESS } from './constants';
 
 // Contract interaction functions
 
@@ -14,8 +12,8 @@ export async function callDailyReset() {
     console.log('🔄 Calling dailyReset on Karam contract...');
 
     const hash = await worldchainWalletClient.writeContract({
-      address: KARAM_CONTRACT_ADDRESS,
-      abi: KARAM_ABI,
+      address: WORLDMAINNET_KARAM_CONTRACT_ADDRESS,
+      abi: KARAM_CONTRACT_ABI,
       functionName: 'dailyReset',
       args: []
     });
@@ -34,8 +32,8 @@ export async function callRedistributeKarma() {
     console.log('💰 Calling redistibuteKarma on Karam contract...');
 
     const hash = await worldchainWalletClient.writeContract({
-      address: KARAM_CONTRACT_ADDRESS,
-      abi: KARAM_ABI,
+      address: WORLDMAINNET_KARAM_CONTRACT_ADDRESS,
+      abi: KARAM_CONTRACT_ABI,
       functionName: 'redistibuteKarma',
       args: []
     });
@@ -58,8 +56,8 @@ export async function requestRandomness() {
     const fee = BigInt('1000000000000000'); // 0.001 ETH
 
     const hash = await optimismWalletClient.writeContract({
-      address: REDISTRIBUTION_CONTRACT_ADDRESS,
-      abi: REDISTRIBUTION_ABI,
+      address: OPSEPOlIA_REDISTRIBUTION_CONTRACT_ADDRESS,
+      abi: REDISTRIBUTION_CONTRACT_ABI,
       functionName: 'request',
       args: [],
       value: fee

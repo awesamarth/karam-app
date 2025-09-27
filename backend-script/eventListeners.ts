@@ -1,14 +1,11 @@
 import {
   worldchainPublicClient,
   optimismPublicClient,
-  KARAM_CONTRACT_ADDRESS,
-  REDISTRIBUTION_CONTRACT_ADDRESS,
-  KARAM_ABI,
-  REDISTRIBUTION_ABI
 } from './config';
 import { formatEther } from 'viem';
 import { storeKarmaTransaction } from './database';
 import { notifyKarmaReceived, notifyKarmaSlashed } from './notifications';
+import { KARAM_CONTRACT_ABI, OPSEPOlIA_REDISTRIBUTION_CONTRACT_ADDRESS, REDISTRIBUTION_CONTRACT_ABI, WORLDMAINNET_KARAM_CONTRACT_ADDRESS } from './constants';
 
 // Event listeners
 export function setupKarmaEventListeners() {
@@ -16,8 +13,8 @@ export function setupKarmaEventListeners() {
 
   // Listen for KarmaGiven events
   worldchainPublicClient.watchContractEvent({
-    address: KARAM_CONTRACT_ADDRESS,
-    abi: KARAM_ABI,
+    address: WORLDMAINNET_KARAM_CONTRACT_ADDRESS,
+    abi: KARAM_CONTRACT_ABI,
     eventName: 'KarmaGiven',
     onLogs: async (logs) => {
       for (const log of logs) {
@@ -60,8 +57,8 @@ export function setupKarmaEventListeners() {
 
   // Listen for KarmaSlashed events
   worldchainPublicClient.watchContractEvent({
-    address: KARAM_CONTRACT_ADDRESS,
-    abi: KARAM_ABI,
+    address: WORLDMAINNET_KARAM_CONTRACT_ADDRESS,
+    abi: KARAM_CONTRACT_ABI,
     eventName: 'KarmaSlashed',
     onLogs: async (logs) => {
       for (const log of logs) {
@@ -110,8 +107,8 @@ export function setupRedistributionEventListeners() {
 
   // Listen for EntropyResult events
   optimismPublicClient.watchContractEvent({
-    address: REDISTRIBUTION_CONTRACT_ADDRESS,
-    abi: REDISTRIBUTION_ABI,
+    address: OPSEPOlIA_REDISTRIBUTION_CONTRACT_ADDRESS,
+    abi: REDISTRIBUTION_CONTRACT_ABI,
     eventName: 'EntropyResult',
     onLogs: async (logs) => {
       for (const log of logs) {

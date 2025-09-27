@@ -91,6 +91,10 @@ contract Karam {
         isRegistered[msg.sender] = true;
     }
 
+    function getAllUsers() public view returns (address[] memory){
+        return allUsers;
+    }
+
     function giveKarma(address _receiver, uint _amount, string memory _reason) public givingLimitChecker(_receiver, _amount) {
         //assuming the above parameter (amount) is in ether
         if (karma[msg.sender]<_amount){

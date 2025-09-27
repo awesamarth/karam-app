@@ -1,6 +1,6 @@
 'use client';
 
-import { KARAM_CONTRACT_ABI, LOCAL_KARAM_CONTRACT_ADDRESS } from '@/constants';
+import { KARAM_CONTRACT_ABI, LOCAL_KARAM_CONTRACT_ADDRESS } from '../../../src/constants';
 import { Button } from '@worldcoin/mini-apps-ui-kit-react';
 import { useState } from 'react';
 import { createPublicClient, createWalletClient, http, formatEther, parseEther } from 'viem';
@@ -228,30 +228,24 @@ export default function AnotherTestPage() {
     setIsLoading(true);
     try {
       // Try to get all users
-      const allUsers: string[] = [];
-      let i = 0;
-      while (true) {
         try {
-          const user = await localReadClient.readContract({
+          const users = await localReadClient.readContract({
             address: LOCAL_KARAM_CONTRACT_ADDRESS as `0x${string}`,
             abi: KARAM_CONTRACT_ABI,
-            functionName: 'allUsers',
-            args: [BigInt(i)]
-          }) as string;
-          allUsers.push(user);
-          i++;
+            functionName: 'getAllUsers',
+
+          }) 
+
+          console.log(users)
         } catch {
-          break;
+
+          console.log("error")
         }
       }
 
-      addResult('All Users Array', {
-        totalUsers: allUsers.length,
-        users: allUsers.slice(0, 5), // Show first 5
-        note: allUsers.length > 5 ? `... and ${allUsers.length - 5} more` : ''
-      });
 
-    } catch (error: any) {
+
+     catch (error: any) {
       addResult('All Users Error', error.message);
     }
     setIsLoading(false);

@@ -1,8 +1,8 @@
+import { Address } from 'viem';
 import {
   worldchainPublicClient,
-  KARAM_CONTRACT_ADDRESS,
-  KARAM_ABI
 } from './config';
+import { KARAM_CONTRACT_ABI, WORLDMAINNET_KARAM_CONTRACT_ADDRESS, WORLDSEPOLIA_KARAM_CONTRACT_ADDRESS } from './constants';
 import { prisma } from './database';
 
 interface LeaderboardEntry {
@@ -10,6 +10,8 @@ interface LeaderboardEntry {
   karma: bigint;
   rank: number;
 }
+
+
 
 interface Leaderboard {
   top3: LeaderboardEntry[];
@@ -24,8 +26,8 @@ export async function updateLeaderboard(): Promise<Leaderboard> {
 
     // Step 1: Get all users from allUsers array directly
     const allUsers = await worldchainPublicClient.readContract({
-      address: KARAM_CONTRACT_ADDRESS,
-      abi: KARAM_ABI,
+      address: WORLDMAINNET_KARAM_CONTRACT_ADDRESS,
+      abi: KARAM_CONTRACT_ABI,
       functionName: 'allUsers',
       args: []
     }) as string[];
@@ -37,18 +39,31 @@ export async function updateLeaderboard(): Promise<Leaderboard> {
       return { top3: [], updated: new Date() };
     }
 
+
+    const karamContract = {
+      address: WORLDMAINNET_KARAM_CONTRACT_ADDRESS,
+      abi: KARAM_CONTRACT_ABI
+    }
     // Step 2: Use multicall to get all karma balances efficiently
-    const karmaContracts = allUsers.map(userAddress => ({
-      address: KARAM_CONTRACT_ADDRESS as `0x${string}`,
-      abi: KARAM_ABI,
+    const allUsersArray = await worldchainPublicClient.readContract({
+      address: WORLDMAINNET_KARAM_CONTRACT_ADDRESS as `0x${string}`,
+      abi: KARAM_CONTRACT_ABI,
       functionName: 'karma' as const,
-      args: [userAddress as `0x${string}`]
-    }));
+    }) as Address[];
+
+    let karmaArray:any = []
+
+    for (let i=0; i < allUsersArray.length;i++){
+      karmaArray.push({...karamContract, functionName:'karma', args:[allUsersArray[i]]})
+
+    }
+
+
 
     console.log('🔍 Fetching karma balances via multicall...');
 
     const karmaResults = await worldchainPublicClient.multicall({
-      contracts: karmaContracts
+      contracts: karmaArray
     });
 
     // Step 3: Process results and create leaderboard entries
@@ -107,20 +122,7 @@ export async function updateLeaderboard(): Promise<Leaderboard> {
 
 async function updateENSSubdomains(top3: LeaderboardEntry[]) {
   try {
-    console.log('🌐 Checking ENS subdomain updates...');
 
-    // Check if top 3 has changed
-    const previousTop3 = currentLeaderboard?.top3 || [];
-    const hasChanged = top3.some((entry, index) =>
-      !previousTop3[index] || previousTop3[index].address !== entry.address
-    );
-
-    if (!hasChanged) {
-      console.log('✅ Top 3 unchanged, skipping ENS updates');
-      return;
-    }
-
-    console.log('🔄 Top 3 changed, updating ENS subdomains...');
 
     // TODO: Implement ENS subdomain updates
     // This would require:
@@ -131,7 +133,7 @@ async function updateENSSubdomains(top3: LeaderboardEntry[]) {
     console.log('🚧 ENS subdomain updates not implemented yet');
     console.log('📝 Planned subdomains:');
     top3.forEach((entry, index) => {
-      const subdomain = ['1st', '2nd', '3rd'][index];
+      const subdomain = ['god', 'angel', 'saint'][index];
       console.log(`  ${subdomain}.karam.eth → ${entry.address}`);
     });
 

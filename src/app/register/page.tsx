@@ -6,6 +6,8 @@ import { walletAuth } from '@/auth/wallet';
 import { useMiniKit } from '@worldcoin/minikit-js/minikit-provider';
 import { Button } from '@worldcoin/mini-apps-ui-kit-react';
 import { useRouter } from 'next/navigation';
+import { KARAM_CONTRACT_ABI, WORLDMAINNET_KARAM_CONTRACT_ADDRESS } from '@/constants';
+import { MiniKit } from '@worldcoin/minikit-js';
 
 export default function RegisterPage() {
   const session = useSession();
@@ -44,20 +46,34 @@ export default function RegisterPage() {
 
     setIsRegistering(true);
     try {
-      // TODO: Call register() contract function
+      console.log('Registering user on contract...');
 
-      console.log('Registering user...');
+      // Call register() contract function
+      const { finalPayload } = await MiniKit.commandsAsync.sendTransaction({
+        transaction: [
+          {
+            address: WORLDMAINNET_KARAM_CONTRACT_ADDRESS,
+            abi: KARAM_CONTRACT_ABI,
+            functionName: 'register',
+            args: [],
+          },
+        ],
+      });
 
-      // Register ENS subdomain
-      await registerEnsSubdomain(username);
+      if (finalPayload.status === 'success') {
+        console.log('Registration transaction submitted:', finalPayload.transaction_id);
 
-      // Simulate registration
-      setTimeout(() => {
-        setIsRegistering(false);
+        // Register ENS subdomain (TODO: implement later)
+        await registerEnsSubdomain(username);
+
+        // Redirect to dashboard after successful registration
         router.push('/');
-      }, 2000);
+      } else {
+        console.error('Registration transaction failed:', finalPayload);
+      }
     } catch (error) {
       console.error('Registration failed:', error);
+    } finally {
       setIsRegistering(false);
     }
   };
