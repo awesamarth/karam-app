@@ -1,19 +1,22 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { walletAuth } from '@/auth/wallet';
 import { useMiniKit } from '@worldcoin/minikit-js/minikit-provider';
 import { Button } from '@worldcoin/mini-apps-ui-kit-react';
 import { KARAM_CONTRACT_ABI, WORLDMAINNET_KARAM_CONTRACT_ADDRESS } from '@/constants';
 import { createPublicClient, http, formatEther } from 'viem';
-import { worldchain } from 'viem/chains';
+import { worldchain, sepolia } from 'viem/chains';
 import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { createEnsPublicClient } from '@ensdomains/ensjs';
 
 export const KarmaDashboard = () => {
   const session = useSession();
   const { isInstalled } = useMiniKit();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [karmaBalance, setKarmaBalance] = useState<number>(0);
   const [dailyGiven, setDailyGiven] = useState<number>(0);
   const [dailyLimit] = useState<number>(30);
@@ -24,15 +27,24 @@ export const KarmaDashboard = () => {
     discord: ''
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isSearching, setIsSearching] = useState<boolean>(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const worldchainPublicClient = createPublicClient({
     chain: worldchain,
     transport: http(),
   });
 
+  const ensClient = createEnsPublicClient({
+    chain: sepolia,
+    transport: http()
+  });
+
   const fetchUserData = async (userAddress: string) => {
     try {
       setIsLoading(true);
+      console.log('Fetching data for address:', userAddress);
 
       const [
         registrationStatus,
@@ -68,27 +80,41 @@ export const KarmaDashboard = () => {
         ]
       });
 
+      console.log('Contract call results:', {
+        registrationStatus,
+        karmaAmount,
+        dailyKarmaGiven,
+        connections
+      });
+
       if (registrationStatus.status === 'success') {
         const registered = registrationStatus.result as boolean;
+        console.log('Registration status:', registered);
         setIsRegistered(registered);
 
         // Redirect to registration if user is not registered
         if (!registered) {
+          console.log('User not registered, redirecting to /register');
           router.push('/register');
           return;
         }
       }
 
       if (karmaAmount.status === 'success') {
-        setKarmaBalance(Number(formatEther(karmaAmount.result as bigint)));
+        const karma = Number(formatEther(karmaAmount.result as bigint));
+        console.log('Karma balance:', karma);
+        setKarmaBalance(karma);
       }
 
       if (dailyKarmaGiven.status === 'success') {
-        setDailyGiven(Number(formatEther(dailyKarmaGiven.result as bigint)));
+        const dailyGiven = Number(formatEther(dailyKarmaGiven.result as bigint));
+        console.log('Daily karma given:', dailyGiven);
+        setDailyGiven(dailyGiven);
       }
 
       if (connections.status === 'success') {
         const [twitter, github, discord] = connections.result as [string, string, string];
+        console.log('Social connections:', { twitter, github, discord });
         setSocialConnections({
           twitter: twitter || '',
           github: github || '',
@@ -128,6 +154,123 @@ export const KarmaDashboard = () => {
     }
   }, [session.status, session.data?.user?.walletAddress]);
 
+  // Check for refresh param (set when coming back from registration)
+  useEffect(() => {
+    const shouldRefresh = searchParams.get('refresh');
+    if (shouldRefresh && session.status === 'authenticated' && session.data?.user?.walletAddress) {
+      console.log('Refresh param detected, fetching fresh data...');
+      // Remove the refresh param from URL
+      router.replace('/');
+      // Fetch fresh data
+      fetchUserData(session.data.user.walletAddress);
+    }
+  }, [searchParams, session.status, session.data?.user?.walletAddress]);
+
+  // ENS search functionality
+  const searchENSDomains = async (searchTerm: string) => {
+    try {
+      const address = await ensClient.getAddressRecord({
+        name: `${searchTerm}.eth`
+      });
+      console.log('ENS resolved:', address);
+      return address;
+    } catch (error) {
+      console.log('ENS not found or error:', error);
+      return null;
+    }
+  };
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+
+    setIsSearching(true);
+    try {
+      let addressToNavigate = searchQuery.trim();
+
+      // Check if it's an ENS domain (contains letters and ends with .eth or doesn't have 0x prefix)
+      if (!addressToNavigate.startsWith('0x')) {
+        console.log('Attempting ENS resolution for:', addressToNavigate);
+
+        // Add .eth if not present
+        const ensName = addressToNavigate.endsWith('.eth') ? addressToNavigate : `${addressToNavigate}.eth`;
+        const resolvedAddress = await searchENSDomains(addressToNavigate);
+
+        if (resolvedAddress) {
+          addressToNavigate = resolvedAddress.value;
+          console.log('ENS resolved to address:', addressToNavigate);
+        } else {
+          alert('ENS domain not found or invalid address');
+          setIsSearching(false);
+          return;
+        }
+      }
+
+      // Validate address format
+      if (!addressToNavigate.startsWith('0x') || addressToNavigate.length !== 42) {
+        alert('Invalid address format');
+        setIsSearching(false);
+        return;
+      }
+
+      // Navigate to profile
+      router.push(`/profile/${addressToNavigate}`);
+      setSearchQuery(''); // Clear search after navigation
+
+    } catch (error) {
+      console.error('Search error:', error);
+      alert('Search failed. Please try again.');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  // Handle give/slash karma clicks - focus search bar
+  const handleGiveKarmaClick = () => {
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+      setSearchQuery('');
+      // Add a little shake animation or highlight
+      searchInputRef.current.style.borderColor = '#22c55e';
+      searchInputRef.current.placeholder = 'Search user to give karma to...';
+      setTimeout(() => {
+        if (searchInputRef.current) {
+          searchInputRef.current.style.borderColor = '';
+          searchInputRef.current.placeholder = 'Search users (0x... or vitalik.eth)...';
+        }
+      }, 2000);
+    }
+  };
+
+  const handleSlashKarmaClick = () => {
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+      setSearchQuery('');
+      // Add a little shake animation or highlight
+      searchInputRef.current.style.borderColor = '#ef4444';
+      searchInputRef.current.placeholder = 'Search user to slash karma from...';
+      setTimeout(() => {
+        if (searchInputRef.current) {
+          searchInputRef.current.style.borderColor = '';
+          searchInputRef.current.placeholder = 'Search users (0x... or vitalik.eth)...';
+        }
+      }, 2000);
+    }
+  };
+
+  // Add a refresh button or auto-refresh mechanism
+  const refreshData = () => {
+    if (session.status === 'authenticated' && session.data?.user?.walletAddress) {
+      console.log('Manually refreshing user data...');
+      fetchUserData(session.data.user.walletAddress);
+    }
+  };
+
   if (session.status === 'loading' || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -166,7 +309,7 @@ export const KarmaDashboard = () => {
         {/* User Profile Picture */}
         <div
           className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center border-2 border-gray-400 cursor-pointer hover:bg-gray-400 transition-colors"
-          onClick={() => window.location.href = '/profile'}
+          onClick={() => window.location.href = '/my-profile'}
         >
           <span className="text-black text-sm font-bold">
             {session?.data?.user?.username?.charAt(0).toUpperCase() || 'A'}
@@ -174,13 +317,27 @@ export const KarmaDashboard = () => {
         </div>
 
         {/* Search Bar */}
-        <div className="flex-1">
+        <div className="flex-1 flex gap-2">
           <input
+            ref={searchInputRef}
             type="text"
-            placeholder="Search users..."
+            placeholder="Search users (0x... or vitalik.eth)..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={handleKeyPress}
+            disabled={isSearching}
             style={{ color: '#000000', backgroundColor: '#ffffff' }}
-            className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:border-black"
+            className="flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:border-black disabled:opacity-50 transition-colors duration-200"
           />
+          <Button
+            onClick={handleSearch}
+            disabled={isSearching || !searchQuery.trim()}
+            variant="primary"
+            size="sm"
+            className="!px-3"
+          >
+            {isSearching ? '...' : '🔍'}
+          </Button>
         </div>
       </div>
 
@@ -194,6 +351,7 @@ export const KarmaDashboard = () => {
         {/* Primary Actions */}
         <div className="flex gap-4 w-full">
           <Button
+            onClick={handleGiveKarmaClick}
             variant="primary"
             size="lg"
             className="flex-1"
@@ -201,6 +359,7 @@ export const KarmaDashboard = () => {
             Give Karma
           </Button>
           <Button
+            onClick={handleSlashKarmaClick}
             variant="secondary"
             size="lg"
             className="flex-1"

@@ -66,8 +66,10 @@ export default function RegisterPage() {
         // Register ENS subdomain (TODO: implement later)
         await registerEnsSubdomain(username);
 
-        // Redirect to dashboard after successful registration
-        router.push('/');
+        // Wait a bit for transaction to be mined before redirecting
+        setTimeout(() => {
+          router.push('/?refresh=true');
+        }, 2000);
       } else {
         console.error('Registration transaction failed:', finalPayload);
       }

@@ -2,10 +2,15 @@ import {
   worldchainPublicClient,
   optimismPublicClient,
 } from './config';
-import { formatEther } from 'viem';
+import { formatEther, parseEventLogs } from 'viem';
 import { storeKarmaTransaction } from './database';
 import { notifyKarmaReceived, notifyKarmaSlashed } from './notifications';
-import { KARAM_CONTRACT_ABI, OPSEPOlIA_REDISTRIBUTION_CONTRACT_ADDRESS, REDISTRIBUTION_CONTRACT_ABI, WORLDMAINNET_KARAM_CONTRACT_ADDRESS } from './constants';
+import {
+  KARAM_CONTRACT_ABI,
+  OPSEPOlIA_REDISTRIBUTION_CONTRACT_ADDRESS,
+  REDISTRIBUTION_CONTRACT_ABI,
+  WORLDMAINNET_KARAM_CONTRACT_ADDRESS
+} from './constants';
 
 // Event listeners
 export function setupKarmaEventListeners() {
@@ -13,13 +18,13 @@ export function setupKarmaEventListeners() {
 
   // Listen for KarmaGiven events
   worldchainPublicClient.watchContractEvent({
-    address: WORLDMAINNET_KARAM_CONTRACT_ADDRESS,
+    address: WORLDMAINNET_KARAM_CONTRACT_ADDRESS as `0x${string}`,
     abi: KARAM_CONTRACT_ABI,
     eventName: 'KarmaGiven',
     onLogs: async (logs) => {
       for (const log of logs) {
         try {
-          const { from, to, amount, reason, timestamp } = log.args as any;
+          const { from, to, amount, reason, timestamp } = (log as any).args;
 
           console.log('📈 KarmaGiven event:', {
             from,
@@ -36,8 +41,8 @@ export function setupKarmaEventListeners() {
             amount.toString(),
             reason,
             new Date(Number(timestamp) * 1000),
-            log.transactionHash,
-            log.blockNumber
+            log.transactionHash!,
+            log.blockNumber!
           );
 
           // Send notification to user
@@ -57,13 +62,13 @@ export function setupKarmaEventListeners() {
 
   // Listen for KarmaSlashed events
   worldchainPublicClient.watchContractEvent({
-    address: WORLDMAINNET_KARAM_CONTRACT_ADDRESS,
+    address: WORLDMAINNET_KARAM_CONTRACT_ADDRESS as `0x${string}`,
     abi: KARAM_CONTRACT_ABI,
     eventName: 'KarmaSlashed',
     onLogs: async (logs) => {
       for (const log of logs) {
         try {
-          const { slasher, victim, amount, reason, timestamp } = log.args as any;
+          const { slasher, victim, amount, reason, timestamp } = (log as any).args;
 
           console.log('📉 KarmaSlashed event:', {
             slasher,
@@ -80,8 +85,8 @@ export function setupKarmaEventListeners() {
             amount.toString(),
             reason,
             new Date(Number(timestamp) * 1000),
-            log.transactionHash,
-            log.blockNumber
+            log.transactionHash!,
+            log.blockNumber!
           );
 
           // Send notification to user
@@ -107,13 +112,13 @@ export function setupRedistributionEventListeners() {
 
   // Listen for EntropyResult events
   optimismPublicClient.watchContractEvent({
-    address: OPSEPOlIA_REDISTRIBUTION_CONTRACT_ADDRESS,
+    address: OPSEPOlIA_REDISTRIBUTION_CONTRACT_ADDRESS as `0x${string}`,
     abi: REDISTRIBUTION_CONTRACT_ABI,
     eventName: 'EntropyResult',
     onLogs: async (logs) => {
       for (const log of logs) {
         try {
-          const { sequenceNumber, result } = log.args as any;
+          const { sequenceNumber, result } = (log as any).args;
 
           console.log('🎲 EntropyResult event:', {
             sequenceNumber,
