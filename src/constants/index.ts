@@ -498,25 +498,3 @@ export const REDISTRIBUTION_CONTRACT_ABI = [
             "anonymous": false
         }
     ]
-export const COUNTER_ABI= [
-        {
-            "type": "function",
-            "name": "count",
-            "inputs": [],
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "uint256",
-                    "internalType": "uint256"
-                }
-            ],
-            "stateMutability": "view"
-        },
-        {
-            "type": "function",
-            "name": "increment",
-            "inputs": [],
-            "outputs": [],
-            "stateMutability": "nonpayable"
-        }
-    ]
