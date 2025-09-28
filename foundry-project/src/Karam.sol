@@ -44,7 +44,7 @@ contract Karam {
     mapping (address=> bool) public isRegistered;
     mapping (address => Connections) public socialConnections;
     mapping(address => uint256) public karma;
-    mapping (string=> address) twitterUsername;
+    mapping (string=> address) public twitterUsername;
     mapping(address => uint256) public karmaGivenInDay;
     mapping(address => uint256) public karmaSlashedInDay;
     mapping (address => uint256) public totalKarmaSlashedOfUser; //ye karni baaki hai abhi
