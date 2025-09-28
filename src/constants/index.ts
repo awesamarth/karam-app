@@ -5,6 +5,9 @@ export const WORLDMAINNET_KARAM_CONTRACT_ADDRESS="0x858bf798C977F8FC522a5116b6D6
 
 export const LOCAL_KARAM_CONTRACT_ADDRESS="0x5FbDB2315678afecb367f032d93F642f64180aa3"
 
+// ENS Contract on World Sepolia
+export const WORLD_SEPOLIA_ENS_CONTRACT_ADDRESS="0x0d1F32D0048DBeC6A3Ac3dA7dc84BE5cd47e5cE4"
+
 
 export const KARAM_CONTRACT_ABI=[
         {
@@ -498,3 +501,24 @@ export const REDISTRIBUTION_CONTRACT_ABI = [
             "anonymous": false
         }
     ]
+
+export const ENS_CONTRACT_ABI = [
+    {
+        "type": "function",
+        "name": "register",
+        "inputs": [
+            {
+                "name": "label",
+                "type": "string",
+                "internalType": "string"
+            },
+            {
+                "name": "owner",
+                "type": "address",
+                "internalType": "address"
+            }
+        ],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    }
+]

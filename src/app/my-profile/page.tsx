@@ -59,7 +59,7 @@ export default function ProfilePage() {
           {
             address: WORLDMAINNET_KARAM_CONTRACT_ADDRESS as `0x${string}`,
             abi: KARAM_CONTRACT_ABI,
-            functionName: 'totalKarmaReceived',
+            functionName: 'totalKarmaReceivedByUser',
             args: [userAddress as `0x${string}`]
           }
         ]

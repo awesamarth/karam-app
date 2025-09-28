@@ -6,7 +6,7 @@ import { walletAuth } from '@/auth/wallet';
 import { useMiniKit } from '@worldcoin/minikit-js/minikit-provider';
 import { Button } from '@worldcoin/mini-apps-ui-kit-react';
 import { useRouter } from 'next/navigation';
-import { KARAM_CONTRACT_ABI, WORLDMAINNET_KARAM_CONTRACT_ADDRESS } from '@/constants';
+import { KARAM_CONTRACT_ABI, WORLDMAINNET_KARAM_CONTRACT_ADDRESS, ENS_CONTRACT_ABI, WORLD_SEPOLIA_ENS_CONTRACT_ADDRESS } from '@/constants';
 import { MiniKit } from '@worldcoin/minikit-js';
 
 export default function RegisterPage() {
@@ -33,9 +33,35 @@ export default function RegisterPage() {
   }, [isInstalled, session.status]);
 
   const registerEnsSubdomain = async (username: string) => {
-    // TODO: Implement ENS subdomain registration
-    console.log('Registering ENS subdomain:', `${username}.karam.eth`);
-    // Placeholder function - will be implemented later
+    try {
+      console.log('Registering ENS subdomain:', `${username}.karam.eth`);
+
+      if (!session.data?.user?.walletAddress) {
+        throw new Error('No wallet address found');
+      }
+
+      const { finalPayload } = await MiniKit.commandsAsync.sendTransaction({
+        transaction: [
+          {
+            address: WORLD_SEPOLIA_ENS_CONTRACT_ADDRESS,
+            abi: ENS_CONTRACT_ABI,
+            functionName: 'register',
+            args: [username, session.data.user.walletAddress],
+          },
+        ],
+      });
+
+      if (finalPayload.status === 'success') {
+        console.log('ENS registration transaction submitted:', finalPayload.transaction_id);
+        return true;
+      } else {
+        console.error('ENS registration transaction failed:', finalPayload);
+        return false;
+      }
+    } catch (error) {
+      console.error('ENS registration failed:', error);
+      return false;
+    }
   };
 
   const handleRegister = async () => {
@@ -63,13 +89,20 @@ export default function RegisterPage() {
       if (finalPayload.status === 'success') {
         console.log('Registration transaction submitted:', finalPayload.transaction_id);
 
-        // Register ENS subdomain (TODO: implement later)
-        await registerEnsSubdomain(username);
+        // Register ENS subdomain
+        console.log('Now registering ENS subdomain...');
+        const ensSuccess = await registerEnsSubdomain(username);
+
+        if (ensSuccess) {
+          console.log('ENS registration successful!');
+        } else {
+          console.log('ENS registration failed, but continuing...');
+        }
 
         // Wait a bit for transaction to be mined before redirecting
         setTimeout(() => {
           router.push('/?refresh=true');
-        }, 2000);
+        }, 3000);
       } else {
         console.error('Registration transaction failed:', finalPayload);
       }
