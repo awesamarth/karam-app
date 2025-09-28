@@ -1,3 +1,5 @@
+import { Button } from '@worldcoin/mini-apps-ui-kit-react';
+
 interface KarmaModalProps {
   type: 'give' | 'slash';
   isOpen: boolean;
@@ -129,23 +131,25 @@ export function KarmaModal({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3">
-          <button
+        <div className="flex gap-4 w-full">
+          <Button
             onClick={onClose}
             disabled={isTransacting}
-            className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg text-black font-medium hover:bg-gray-50 disabled:opacity-50"
+            variant="secondary"
+            size="lg"
+            className="flex-1"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={onConfirm}
             disabled={isTransacting || amount === 0 || !reason.trim() || amount > maxAmount}
-            className={`flex-1 px-4 py-3 rounded-lg text-white font-medium disabled:opacity-50 ${
-              isGive ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
-            }`}
+            variant={isGive ? "primary" : "secondary"}
+            size="lg"
+            className="flex-1"
           >
             {isTransacting ? 'Processing...' : `${isGive ? 'Give' : 'Slash'} Karma`}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

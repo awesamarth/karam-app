@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { createPublicClient, createWalletClient, http } from 'viem';
-import { worldchainSepolia, optimismSepolia, worldchain } from 'viem/chains';
+import { optimismSepolia, worldchain } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 
 // Environment variables

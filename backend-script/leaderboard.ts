@@ -2,7 +2,7 @@ import { Address } from 'viem';
 import {
   worldchainPublicClient,
 } from './config';
-import { KARAM_CONTRACT_ABI, WORLDMAINNET_KARAM_CONTRACT_ADDRESS, WORLDSEPOLIA_KARAM_CONTRACT_ADDRESS } from './constants';
+import { KARAM_CONTRACT_ABI, WORLDMAINNET_KARAM_CONTRACT_ADDRESS } from './constants';
 import { prisma } from './database';
 
 interface LeaderboardEntry {

@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
   eslint: {
       ignoreDuringBuilds: true,
     },
-  allowedDevOrigins: ['pseudocrystalline-leigh-unvulgarly.ngrok-free.dev', 'localhost:3000'], // Add your dev origin here
+  allowedDevOrigins: ['pseudocrystalline-leigh-unvulgarly.ngrok-free.dev', 'localhost:3000', 'karam-app.vercel.app'], // Add your dev origin here
   reactStrictMode: false,
 };
 

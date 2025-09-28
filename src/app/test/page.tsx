@@ -9,7 +9,7 @@ import { useSession } from 'next-auth/react';
 import { walletAuth } from '@/auth/wallet';
 import { useMiniKit } from '@worldcoin/minikit-js/minikit-provider';
 import { createPublicClient, http } from 'viem';
-import { sepolia, worldchain, worldchainSepolia } from 'viem/chains';
+import { sepolia, worldchain } from 'viem/chains';
 import { useRouter } from 'next/navigation';
 import { createEnsPublicClient } from '@ensdomains/ensjs';
 

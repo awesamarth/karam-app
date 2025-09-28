@@ -1,16 +1,109 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@worldcoin/mini-apps-ui-kit-react';
 import { useRouter } from 'next/navigation';
+import { KARAM_CONTRACT_ABI, WORLDMAINNET_KARAM_CONTRACT_ADDRESS } from '@/constants';
+import { createPublicClient, http, formatEther } from 'viem';
+import { worldchain } from 'viem/chains';
 
 export default function ProfilePage() {
   const session = useSession();
   const router = useRouter();
-  const [karmaBalance] = useState<number>(500);
-  const [totalGiven] = useState<number>(250);
-  const [totalReceived] = useState<number>(750);
+  const [karmaBalance, setKarmaBalance] = useState<number>(0);
+  const [totalGiven, setTotalGiven] = useState<number>(0);
+  const [totalReceived, setTotalReceived] = useState<number>(0);
+  const [socialConnections, setSocialConnections] = useState({
+    twitter: '',
+    github: '',
+    discord: ''
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  const worldchainPublicClient = createPublicClient({
+    chain: worldchain,
+    transport: http(),
+  });
+
+  const fetchUserData = async (userAddress: string) => {
+    try {
+      setIsLoading(true);
+      console.log('Fetching data for address:', userAddress);
+
+      const [
+        karmaAmount,
+        connections,
+        totalKarmaGiven,
+        totalKarmaReceived
+      ] = await worldchainPublicClient.multicall({
+        contracts: [
+          {
+            address: WORLDMAINNET_KARAM_CONTRACT_ADDRESS as `0x${string}`,
+            abi: KARAM_CONTRACT_ABI,
+            functionName: 'karma',
+            args: [userAddress as `0x${string}`]
+          },
+          {
+            address: WORLDMAINNET_KARAM_CONTRACT_ADDRESS as `0x${string}`,
+            abi: KARAM_CONTRACT_ABI,
+            functionName: 'socialConnections',
+            args: [userAddress as `0x${string}`]
+          },
+          {
+            address: WORLDMAINNET_KARAM_CONTRACT_ADDRESS as `0x${string}`,
+            abi: KARAM_CONTRACT_ABI,
+            functionName: 'totalKarmaGiven',
+            args: [userAddress as `0x${string}`]
+          },
+          {
+            address: WORLDMAINNET_KARAM_CONTRACT_ADDRESS as `0x${string}`,
+            abi: KARAM_CONTRACT_ABI,
+            functionName: 'totalKarmaReceived',
+            args: [userAddress as `0x${string}`]
+          }
+        ]
+      });
+
+      if (karmaAmount.status === 'success') {
+        const karma = Number(formatEther(karmaAmount.result as bigint));
+        setKarmaBalance(karma);
+      }
+
+      if (connections.status === 'success') {
+        const [twitter, github, discord] = connections.result as [string, string, string];
+        setSocialConnections({
+          twitter: twitter || '',
+          github: github || '',
+          discord: discord || ''
+        });
+      }
+
+      if (totalKarmaGiven.status === 'success') {
+        const given = Number(formatEther(totalKarmaGiven.result as bigint));
+        setTotalGiven(given);
+      }
+
+      if (totalKarmaReceived.status === 'success') {
+        const received = Number(formatEther(totalKarmaReceived.result as bigint));
+        setTotalReceived(received);
+      }
+
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch user data when authenticated
+  useEffect(() => {
+    if (session.status === 'authenticated' && session.data?.user?.walletAddress) {
+      fetchUserData(session.data.user.walletAddress);
+    } else if (session.status === 'unauthenticated') {
+      setIsLoading(false);
+    }
+  }, [session.status, session.data?.user?.walletAddress]);
 
   // Mock karma history - will replace with actual data
   const karmaHistory = [
@@ -80,7 +173,7 @@ export default function ProfilePage() {
     },
   ];
 
-  if (session.status === 'loading') {
+  if (session.status === 'loading' || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin w-8 h-8 border-2 border-black border-t-transparent rounded-full"></div>
@@ -142,16 +235,22 @@ export default function ProfilePage() {
       <div className="bg-gray-100 rounded-xl p-4 mb-6 border-2 border-gray-300">
         <h3 className="font-semibold mb-3 text-black">Connected Platforms</h3>
         <div className="flex gap-3 mb-3">
-          <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
+          <div className={`w-8 h-8 ${socialConnections.twitter ? 'bg-black' : 'bg-gray-400'} rounded-full flex items-center justify-center`}>
             <span className="text-white text-xs font-bold">T</span>
           </div>
-          <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
+          <div className={`w-8 h-8 ${socialConnections.github ? 'bg-black' : 'bg-gray-400'} rounded-full flex items-center justify-center`}>
             <span className="text-white text-xs font-bold">G</span>
           </div>
-          <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
+          <div className={`w-8 h-8 ${socialConnections.discord ? 'bg-black' : 'bg-gray-400'} rounded-full flex items-center justify-center`}>
             <span className="text-white text-xs font-bold">D</span>
           </div>
         </div>
+        <p className="text-gray-600 text-xs mb-3">
+          {socialConnections.twitter || socialConnections.github || socialConnections.discord
+            ? `Connected: ${[socialConnections.twitter && 'Twitter', socialConnections.github && 'GitHub', socialConnections.discord && 'Discord'].filter(Boolean).join(', ')}`
+            : 'Connect platforms to earn bonus karma'
+          }
+        </p>
         <Button
           variant="tertiary"
           size="sm"

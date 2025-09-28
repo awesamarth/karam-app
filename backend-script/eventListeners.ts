@@ -14,7 +14,7 @@ import {
 
 // Event listeners
 export function setupKarmaEventListeners() {
-  console.log('🎯 Setting up Karma event listeners on Worldchain Sepolia...');
+  console.log('🎯 Setting up Karma event listeners on Worldchain...');
 
   // Listen for KarmaGiven events
   worldchainPublicClient.watchContractEvent({

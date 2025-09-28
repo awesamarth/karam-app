@@ -132,13 +132,78 @@ export default function ProfilePage() {
     }
   };
 
+  const fetchUserLimits = async (myAddress: string) => {
+    if (!session.data?.user?.walletAddress) return;
+
+    try {
+      console.log('Fetching user limits for:', myAddress);
+
+      const [
+        myKarma,
+        dailyGiven,
+        dailySlashed,
+        slashedToThisUser
+      ] = await worldchainPublicClient.multicall({
+        contracts: [
+          {
+            address: WORLDMAINNET_KARAM_CONTRACT_ADDRESS as `0x${string}`,
+            abi: KARAM_CONTRACT_ABI,
+            functionName: 'karma',
+            args: [myAddress as `0x${string}`]
+          },
+          {
+            address: WORLDMAINNET_KARAM_CONTRACT_ADDRESS as `0x${string}`,
+            abi: KARAM_CONTRACT_ABI,
+            functionName: 'karmaGivenInDay',
+            args: [myAddress as `0x${string}`]
+          },
+          {
+            address: WORLDMAINNET_KARAM_CONTRACT_ADDRESS as `0x${string}`,
+            abi: KARAM_CONTRACT_ABI,
+            functionName: 'karmaSlashedInDay',
+            args: [myAddress as `0x${string}`]
+          },
+          {
+            address: WORLDMAINNET_KARAM_CONTRACT_ADDRESS as `0x${string}`,
+            abi: KARAM_CONTRACT_ABI,
+            functionName: 'karmaSlashedToUserInDay',
+            args: [myAddress as `0x${string}`, address as `0x${string}`]
+          }
+        ]
+      });
+
+      console.log('User limits results:', {
+        myKarma,
+        dailyGiven,
+        dailySlashed,
+        slashedToThisUser
+      });
+
+      setUserLimits({
+        myKarma: myKarma.status === 'success' ? Number(formatEther(myKarma.result as bigint)) : 0,
+        dailyGiven: dailyGiven.status === 'success' ? Number(formatEther(dailyGiven.result as bigint)) : 0,
+        dailySlashed: dailySlashed.status === 'success' ? Number(formatEther(dailySlashed.result as bigint)) : 0,
+        slashedToThisUser: slashedToThisUser.status === 'success' ? Number(formatEther(slashedToThisUser.result as bigint)) : 0
+      });
+
+    } catch (error) {
+      console.error('Error fetching user limits:', error);
+    }
+  };
+
   useEffect(() => {
     if (address) {
       fetchProfileData(address);
 
       // Check if this is the current user's profile
       if (session.status === 'authenticated' && session.data?.user?.walletAddress) {
-        setIsCurrentUser(address.toLowerCase() === session.data.user.walletAddress.toLowerCase());
+        const currentUser = session.data.user.walletAddress;
+        setIsCurrentUser(address.toLowerCase() === currentUser.toLowerCase());
+
+        // Fetch user limits for modal functionality
+        if (address.toLowerCase() !== currentUser.toLowerCase()) {
+          fetchUserLimits(currentUser);
+        }
       }
     }
   }, [address, session.status, session.data?.user?.walletAddress]);

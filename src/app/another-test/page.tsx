@@ -4,18 +4,13 @@ import { KARAM_CONTRACT_ABI, LOCAL_KARAM_CONTRACT_ADDRESS } from '../../../src/c
 import { Button } from '@worldcoin/mini-apps-ui-kit-react';
 import { useState } from 'react';
 import { createPublicClient, createWalletClient, http, formatEther, parseEther } from 'viem';
-import { foundry, worldchainSepolia } from 'viem/chains';
+import { foundry } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 
 export default function AnotherTestPage() {
   const [results, setResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Create clients
-  // const publicClient = createPublicClient({
-  //   chain: worldchainSepolia,
-  //   transport: http(),
-  // });
 
   const localReadClient = createPublicClient({
     chain:foundry,
@@ -26,11 +21,7 @@ export default function AnotherTestPage() {
   //(anvil first key)
   const account = privateKeyToAccount('0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' as `0x${string}`);
 
-  // const walletClient = createWalletClient({
-  //   account,
-  //   chain: worldchainSepolia,
-  //   transport: http(),
-  // });
+
 
   const localWalletClient =  createWalletClient({
     account,
