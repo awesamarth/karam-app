@@ -1,8 +1,9 @@
 import { Address } from 'viem';
 import {
   worldchainPublicClient,
+  worldchainWalletClient,
 } from './config';
-import { KARAM_CONTRACT_ABI, WORLDMAINNET_KARAM_CONTRACT_ADDRESS } from './constants';
+import { KARAM_CONTRACT_ABI, WORLDMAINNET_KARAM_CONTRACT_ADDRESS, ENS_CONTRACT_ABI, WORLD_SEPOLIA_ENS_CONTRACT_ADDRESS } from './constants';
 import { prisma } from './database';
 
 interface LeaderboardEntry {
@@ -122,20 +123,34 @@ export async function updateLeaderboard(): Promise<Leaderboard> {
 
 async function updateENSSubdomains(top3: LeaderboardEntry[]) {
   try {
+    console.log('🏷️ Updating ENS subdomains for top 3 users...');
 
+    const subdomainNames = ['god', 'angel', 'saint'];
 
-    // TODO: Implement ENS subdomain updates
-    // This would require:
-    // 1. ENS domain ownership (karam.eth)
-    // 2. ENS controller/registrar contract interactions
-    // 3. Setting subdomain resolvers for 1st.karam.eth, 2nd.karam.eth, 3rd.karam.eth
+    for (let i = 0; i < Math.min(top3.length, 3); i++) {
+      const entry = top3[i];
+      const subdomain = subdomainNames[i];
 
-    console.log('🚧 ENS subdomain updates not implemented yet');
-    console.log('📝 Planned subdomains:');
-    top3.forEach((entry, index) => {
-      const subdomain = ['god', 'angel', 'saint'][index];
-      console.log(`  ${subdomain}.karam.eth → ${entry.address}`);
-    });
+      try {
+        console.log(`📝 Registering ${subdomain}.karam.eth → ${entry.address.slice(0, 6)}...${entry.address.slice(-4)}`);
+
+        // Call ENS register function for each subdomain
+        const result = await worldchainWalletClient.writeContract({
+          address: WORLD_SEPOLIA_ENS_CONTRACT_ADDRESS as `0x${string}`,
+          abi: ENS_CONTRACT_ABI,
+          functionName: 'register',
+          args: [subdomain, entry.address as `0x${string}`],
+        });
+
+        console.log(`✅ ENS registration for ${subdomain}.karam.eth completed: ${result}`);
+
+      } catch (subdomainError) {
+        console.error(`❌ Failed to register ${subdomain}.karam.eth:`, subdomainError);
+        // Continue with next subdomain even if one fails
+      }
+    }
+
+    console.log('🏷️ ENS subdomain updates completed');
 
   } catch (error) {
     console.error('❌ Error updating ENS subdomains:', error);
